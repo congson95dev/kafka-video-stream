@@ -39,6 +39,7 @@ class kafkaVideoStreaming():
         print('Errback', excp)
 
     def publishFrames(self, payload):
+        # send message by producer
         self.producer.send(
             topic=self.topic, key=self.topicKey, value=payload
         ).add_callback(
@@ -78,8 +79,9 @@ class kafkaVideoStreaming():
                     self.keep_processing = False
 
                 ret, buffer = cv2.imencode('.jpg', frame)
-                self.publishFrames(buffer.tostring())
-            
+                # get each frame and publish to the Kafka
+                self.publishFrames(buffer.tobytes())
+
                 sleep(self.frq)
 
 
@@ -87,7 +89,7 @@ class kafkaVideoStreaming():
                 print('Finished processing video %s' % self.topicKey)
             else:
                 print("Error while reading %s" % self.topicKey)
-        
+
             __VIDEO_FILE.release()
         except KeyboardInterrupt:
             __VIDEO_FILE.release()
@@ -97,7 +99,7 @@ class kafkaVideoStreaming():
 
 if __name__ == "__main__":
     videoStream = kafkaVideoStreaming(
-        bootstrap_servers='localhost:9092',
+        bootstrap_servers='localhost:29092',
         topic='KafkaVideoStream',
         videoFile=argv[1],
         client_id='KafkaVideoStreamClient',

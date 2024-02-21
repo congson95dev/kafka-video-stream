@@ -53,6 +53,7 @@ class kafkaVideoView():
             if self.queue_status:
                 nparr = np.frombuffer(msg, np.uint8)
                 frame = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
+                # show video to the screen
                 cv2.imshow('frame', frame)
             
                 if cv2.waitKey(1) & 0xFF == ord('q'):
@@ -67,10 +68,12 @@ class kafkaVideoView():
         self.videoQueue = Queue()
         self.keepConsuming = True
 
+        # create thread and start render the video by reading each frame from the queue
         self.playerThread = Thread(target=self.playStream, args=(self.videoQueue, ), daemon=False)
         self.playerThread.start()
 
         try:
+            # fetch each frame of the video and add to the queue
             while self.keepConsuming:
                 payload = self.consumer.poll(self.poll)
                 for bucket in payload:
@@ -87,7 +90,7 @@ class kafkaVideoView():
 
 if __name__ == "__main__":
     streamVideoPlayer = kafkaVideoView(
-        bootstrap_servers='localhost:9092',
+        bootstrap_servers='localhost:29092',
         topic='KafkaVideoStream',
         client_id='KafkaVSClient',
         group_id='KafkaVideoStreamConsumer',
